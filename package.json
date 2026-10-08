@@ -1,0 +1,14 @@
+{
+  "name": "book",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --config wrangler.development.jsonc"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "wrangler": "4.148.0"
+  }
+}

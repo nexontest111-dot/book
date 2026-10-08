@@ -5,6 +5,12 @@
   "assets": {
     "directory": "./prototype",
     "binding": "ASSETS",
-    "run_worker_first": ["/api", "/api/*"]
-  }
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ]
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
 }

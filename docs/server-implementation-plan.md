@@ -1,10 +1,10 @@
-# 서버 구현 계획 — 선택 전 초안
+# 서버 구현 계획
 
 ## 현재 상태
 - 운영 주소: https://book.nexontest111.workers.dev
 - 운영 main은 브라우저 저장 방식의 시안이다. 로그인, 공유 DB, 실제 예약, 실제 결제는 없다.
 - development/server-foundation 브랜치에 Worker 진입점과 별도 개발 설정을 준비했다.
-- GET /api/health만 구현했다. 다른 API는 501 API_NOT_IMPLEMENTED를 반환한다.
+- PostgreSQL 연결 및 공개 시설·슬롯 조회 API를 작성했다. 실제 DB 연결은 미완료다. 자세한 현황은 postgresql-setup.md 참조.
 - 화면은 기존 시안 그대로이며 이 API와 아직 연결되지 않는다.
 - 테스트·빌드·배포는 실행하지 않았다. 실제 실행 결과는 아직 확인되지 않았다.
 
@@ -18,7 +18,7 @@
 | 운영 부담 | 별도 계정, 과금, 백업 정책 확인 | Cloudflare 내 관리, DB 용량·처리 제한 확인 |
 | 제안 | 시간 협의와 두 당사자 결제를 고려해 우선 추천 | 고정 슬롯 위주로 MVP를 제한한다면 후보 |
 
-DB와 인증 제공자는 미정이다. PostgreSQL 채택 시 공급자 및 비용을 비교한 뒤 승인받는다. Hyperdrive는 DB 자체가 아닌 외부 DB 연결 서비스다.
+Workers + 관리형 PostgreSQL은 사용자 승인으로 채택했다. DB 공급자와 인증 제공자는 미정이며 공급자 및 비용을 비교한 뒤 승인받는다. Hyperdrive는 DB 자체가 아닌 외부 DB 연결 서비스다.
 
 공식 근거:
 - Worker 정적 자산 라우팅: https://developers.cloudflare.com/workers/static-assets/routing/worker-script/
