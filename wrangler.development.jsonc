@@ -19,5 +19,9 @@
       "id": "a7244cb587fd4870a40b968dfc9172a0"
     }
   ],
-  "keep_vars": true
+  "keep_vars": true,
+  "vars": {
+    "SUPABASE_URL": "https://voavlxrwhqggewxaopyl.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_QCU1Y42vyhCngGs9QwWciw_x27NK-s7"
+  }
 }
