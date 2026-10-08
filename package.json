@@ -6,7 +6,8 @@
     "dev": "wrangler dev --config wrangler.development.jsonc"
   },
   "dependencies": {
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "@supabase/supabase-js": "^2.0.0"
   },
   "devDependencies": {
     "wrangler": "4.148.0"

@@ -1,3 +1,4 @@
+import { authenticate, authConfigured } from "./auth/supabase.js";
 import { withDatabase } from "./db.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
@@ -16,7 +17,14 @@ export default {
       return json({ service: "book", stage: "postgres-foundation",
         databaseBindingConfigured: Boolean(env.HYPERDRIVE?.connectionString),
         databaseConnectivity: "not_checked",
-        authenticationConfigured: false, paymentsConfigured: false });
+        authenticationConfigured: authConfigured(env), paymentsConfigured: false });
+    }
+    if (path === "/api/me") {
+      if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);
+      const result = await authenticate(request, env);
+      if (result.error) return error(result.error, result.status);
+      return json({ data: { authUserId: result.user.id, email: result.user.email ?? null },
+        membership: "not_provisioned", operatorAccess: false });
     }
     const slotsMatch = path.match(/^\/api\/facilities\/([^/]+)\/slots$/);
     if (path !== "/api/facilities" && !slotsMatch) return error("API_NOT_IMPLEMENTED", 501);
