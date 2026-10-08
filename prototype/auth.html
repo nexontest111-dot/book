@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>회원가입 · 로그인 — 플레이약속</title>
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/auth.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="/auth.js"></script>
+</head>
+<body>
+<header class="header"><a class="brand" href="/"><span class="brand-mark">p.</span>플레이약속</a><a href="/">슬롯 둘러보기</a></header>
+<main class="auth-layout">
+<section class="panel">
+<span class="eyebrow">YOUR NEXT PLAY</span><h1>함께할 준비가 됐나요?</h1>
+<p>이메일 인증으로 계정을 만들고 로그인하세요.</p>
+<p id="status" role="status" aria-live="polite">로그인 서비스를 준비하고 있습니다.</p>
+<div id="signed-in" hidden><h2>로그인 완료</h2><p id="account-email"></p><p>예약 기능은 아직 개발 중입니다. 현재 예약 화면은 시안입니다.</p><button id="signout" class="button">로그아웃</button></div>
+<form id="auth-form">
+<fieldset id="controls" disabled>
+<label>이메일<input id="email" type="email" autocomplete="email" required maxlength="254"></label>
+<label>비밀번호<input id="password" type="password" autocomplete="current-password" required maxlength="128"></label>
+<p class="small muted">회원가입 비밀번호는 8자 이상 입력해주세요.</p>
+<div class="auth-actions"><button type="submit" class="button primary">로그인</button><button type="submit" name="action" value="signup" class="button">회원가입</button></div>
+<button id="resend" type="button" class="text-button">인증 메일 다시 보내기</button>
+</fieldset>
+</form>
+</section>
+</main>
+</body></html>

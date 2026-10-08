@@ -26,6 +26,7 @@ export async function authenticate(request, env) {
       return { error: invalid ? "UNAUTHORIZED" : "AUTH_UNAVAILABLE", status: invalid ? 401 : 503 };
     }
     if (!data.user || data.user.is_anonymous) return { error: "UNAUTHORIZED", status: 401 };
+    if (!data.user.email_confirmed_at) return { error: "EMAIL_NOT_CONFIRMED", status: 403 };
     return { user: data.user };
   } catch {
     return { error: "AUTH_UNAVAILABLE", status: 503 };

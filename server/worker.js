@@ -19,6 +19,12 @@ export default {
         databaseConnectivity: "not_checked",
         authenticationConfigured: authConfigured(env), paymentsConfigured: false });
     }
+    if (path === "/api/auth/config") {
+      if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);
+      if (!authConfigured(env)) return error("AUTH_NOT_CONFIGURED", 503);
+      if (!env.SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_")) return error("INVALID_PUBLIC_KEY_CONFIGURATION", 503);
+      return json({ url: env.SUPABASE_URL, publishableKey: env.SUPABASE_PUBLISHABLE_KEY });
+    }
     if (path === "/api/me") {
       if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);
       const result = await authenticate(request, env);
