@@ -1,0 +1,10 @@
+{
+  "name": "book-development",
+  "main": "server/worker.js",
+  "compatibility_date": "2026-10-06",
+  "assets": {
+    "directory": "./prototype",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api", "/api/*"]
+  }
+}
