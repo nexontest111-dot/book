@@ -18,5 +18,6 @@
       "binding": "HYPERDRIVE",
       "id": "a7244cb587fd4870a40b968dfc9172a0"
     }
-  ]
+  ],
+  "keep_vars": true
 }
