@@ -4,6 +4,8 @@ const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 const TYPES = {'golf-team':'골프 팀 예약','golf-join':'골프 개인 조인','baseball-rental':'야구장 대관','baseball-match':'야구 경기 매칭'};
 const STATUSES = {negotiating:'협의 중',awaiting:'결제 대기',confirmed:'예약 확정',expired:'기한 만료',cancelled:'취소 완료'};
 const STORAGE_KEY = 'play-promise-prototype-v1';
+const SITE_CONTENT_KEY = 'play-promise-site-content-v1';
+const DEFAULT_SITE_CONTENT = {announcement:'',heroTitle:'다음 플레이,\n여기서 약속해요.',heroDescription:'골프 티타임부터 야구 경기까지.\n열린 시간을 고르고, 조건을 맞추고, 함께 확정하세요.',tagline:'함께하는 플레이의 시작.',showHero:true,showHowItWorks:true,showAnnouncement:false};
 const DEMO_FEE = 3000;
 const HOLD_DURATION = 30 * 60 * 1000;
 const money = (value) => Number(value).toLocaleString('ko-KR') + '원';
@@ -21,8 +23,11 @@ function freshData() { return {slots:[
 let storageAvailable = true;
 function readState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (saved && Array.isArray(saved.slots) && Array.isArray(saved.bookings)) return saved; } catch { storageAvailable = false; } return freshData(); }
 let state = readState();
+let siteContent = readSiteContent();
 let sport = 'all'; let currentBookingId = null; let toastTimeout;
 function save() { try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); } catch { if(storageAvailable) toast('브라우저 저장을 사용할 수 없어 현재 화면에서만 유지됩니다.'); storageAvailable = false; } }
+function readSiteContent() { try { const saved=JSON.parse(localStorage.getItem(SITE_CONTENT_KEY)); return saved&&typeof saved==='object'?{...DEFAULT_SITE_CONTENT,...saved}: {...DEFAULT_SITE_CONTENT}; } catch { return {...DEFAULT_SITE_CONTENT}; } }
+function saveSiteContent() { try { localStorage.setItem(SITE_CONTENT_KEY,JSON.stringify(siteContent)); } catch { toast('브라우저 저장을 사용할 수 없어 변경사항을 저장하지 못했습니다.'); return false; } return true; }
 function toast(message) { $('#toast').textContent = message; $('#toast').hidden = false; clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { $('#toast').hidden = true; },4500); }
 function uid() { return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 function slotById(id) { return state.slots.find(slot => slot.id === id); }
@@ -32,7 +37,9 @@ function occupied(slot,exceptId) { return state.bookings.some(b => b.id !== exce
 function addMessage(booking,author,text) { booking.messages.push({author,text}); }
 function endBooking(booking,status,reason) { booking.status = status; booking.reason = reason; booking.refunds = booking.paid.map(paid => paid ? 'refunded' : 'none'); addMessage(booking,'시스템',reason + (booking.paid.some(Boolean) ? ' 납부자의 모의 수수료가 전액 환불 처리되었습니다.' : '')); }
 function processExpiry() { let changed = false; for(const b of state.bookings) { if(b.status === 'awaiting' && Date.now() >= b.deadline) { endBooking(b,'expired','양측 결제 기한이 종료되어 슬롯을 해제했습니다.'); changed = true; } } if(changed) save(); return changed; }
-function showView(view) { processExpiry(); $$('.view').forEach(el => {el.hidden = el.id !== `${view}-view`;}); $$('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view === view)); renderAll(); }
+function showView(view) { processExpiry(); $$('.view').forEach(el => {el.hidden = el.id !== `${view}-view`;}); $$('[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view === view)); renderAll(); if(view==='admin') renderAdminForm(); }
+function applySiteContent() { $('#home-hero-title').innerHTML=escapeHTML(siteContent.heroTitle).replace(/\n/g,'<br>'); $('#home-hero-description').innerHTML=escapeHTML(siteContent.heroDescription).replace(/\n/g,'<br>'); $('#home-hero').hidden=!siteContent.showHero; $('#home-how').hidden=!siteContent.showHowItWorks; $('#announcement-banner').textContent=siteContent.announcement||'화면 시안 · 모든 시설과 가격은 예시이며 실제 예약·결제는 이루어지지 않습니다.'; $('#announcement-banner').hidden=!siteContent.showAnnouncement; $('footer p').textContent=siteContent.tagline; }
+function renderAdminForm() { const form=$('#admin-form'); if(!form)return; for(const key of ['announcement','heroTitle','heroDescription','tagline']) form.elements[key].value=siteContent[key]; for(const key of ['showHero','showHowItWorks','showAnnouncement']) form.elements[key].checked=siteContent[key]; $('#admin-preview-title').textContent=siteContent.heroTitle.replace(/\n/g,' '); $('#admin-preview-description').textContent=siteContent.heroDescription.replace(/\n/g,' '); $('#admin-preview-tagline').textContent=siteContent.tagline; }
 function renderSlots() {
   const region = $('#region-filter').value, date = $('#date-filter').value, type = $('#type-filter').value;
   const slots = state.slots.filter(s => s.published && (sport === 'all' || s.type.startsWith(sport)) && (region === 'all' || s.region === region) && (!date || s.date === date) && (type === 'all' || s.type === type));
@@ -97,6 +104,7 @@ document.addEventListener('click',event=>{
 });
 document.addEventListener('submit',event=>{
   const form=event.target;
+  if(form.id==='admin-form') { event.preventDefault(); const data=new FormData(form); siteContent={announcement:String(data.get('announcement')).trim(),heroTitle:String(data.get('heroTitle')).trim(),heroDescription:String(data.get('heroDescription')).trim(),tagline:String(data.get('tagline')).trim(),showHero:form.elements.showHero.checked,showHowItWorks:form.elements.showHowItWorks.checked,showAnnouncement:form.elements.showAnnouncement.checked}; if(!siteContent.heroTitle||!siteContent.heroDescription||!siteContent.tagline)return toast('메인 제목과 설명, 소개 문구를 입력해주세요.'); if(!saveSiteContent())return; applySiteContent();renderAdminForm();toast('홈페이지 노출 정보가 저장되었습니다.');return; }
   if(form.id==='search-form') {event.preventDefault();renderSlots();return;}
   if(form.id==='request-form') {event.preventDefault();processExpiry();const s=slotById(form.dataset.slot),data=new FormData(form),name=String(data.get('opponent')).trim(),terms=String(data.get('terms')).trim();if(!name||!terms)return toast('이름과 희망 조건을 입력해주세요.');if(!s.published||occupied(s))return toast('선택한 슬롯을 이용할 수 없습니다.');const b={id:uid(),slotId:s.id,status:'negotiating',parties:['나 · 데모 예약자',name],terms,version:1,consents:[false,false],paid:[false,false],refunds:['none','none'],messages:[{author:'나 · 데모 예약자',text:terms}],createdAt:Date.now()};state.bookings.push(b);save();$('#slot-dialog').close();showView('bookings');openBooking(b.id);return;}
   if(form.id==='proposal-form') {event.preventDefault();processExpiry();const b=bookingById(currentBookingId);if(b.status!=='negotiating')return;const data=new FormData(form),s=slotById(data.get('slot')),terms=String(data.get('terms')).trim();if(!s||!s.published||occupied(s,b.id))return toast('다른 공개 슬롯을 선택해주세요.');if(!terms)return toast('새 조건을 입력해주세요.');b.slotId=s.id;b.terms=terms;b.version++;b.consents=[false,false];addMessage(b,'나 · 새 조건 제안',`제안 버전 ${b.version}: ${terms}`);save();renderAll();renderBookingDetail();toast('새 제안을 보냈습니다. 양측 동의가 초기화되었습니다.');return;}
@@ -104,8 +112,10 @@ document.addEventListener('submit',event=>{
   if(form.id==='slot-form') {event.preventDefault();processExpiry();const data=new FormData(form),s={id:uid(),facility:String(data.get('facility')).trim(),region:data.get('region'),type:data.get('type'),date:data.get('date'),start:data.get('start'),end:data.get('end'),price:Number(data.get('price')),notes:String(data.get('notes')).trim()||'시간·참가 조건 협의 가능',published:true};if(!s.facility)return toast('시설 이름을 입력해주세요.');if(s.date<dayAfter(0))return toast('오늘 이후의 날짜를 선택해주세요.');if(s.start>=s.end)return toast('종료시간은 시작시간보다 늦어야 합니다.');if(!Number.isFinite(s.price)||s.price<0)return toast('올바른 이용료를 입력해주세요.');if(state.slots.some(existing=>overlaps(existing,s)))return toast('같은 시설의 겹치는 시간대가 이미 등록되어 있습니다.');state.slots.push(s);save();form.reset();form.elements.date.value=dayAfter(2);renderAll();toast('새 슬롯을 공개했습니다. 슬롯 찾기에서 확인할 수 있습니다.');}
 });
 $('#reset-demo').addEventListener('click',()=>{if(!confirm('예약과 추가 슬롯을 모두 지우고 데모를 초기화할까요?'))return;state=freshData();save();$$('dialog').forEach(d=>d.close());currentBookingId=null;sport='all';$('#search-form').reset();$$('[data-sport]').forEach(el=>el.classList.toggle('active',el.dataset.sport==='all'));showView('explore');toast('데모 데이터를 초기화했습니다.');});
+$('#reset-admin').addEventListener('click',()=>{siteContent={...DEFAULT_SITE_CONTENT};renderAdminForm();toast('기본 문구를 불러왔습니다. 저장을 눌러야 홈페이지에 반영됩니다.');});
+$('#admin-form').addEventListener('input',()=>{const form=$('#admin-form');$('#admin-preview-title').textContent=form.elements.heroTitle.value.replace(/\n/g,' ');$('#admin-preview-description').textContent=form.elements.heroDescription.value.replace(/\n/g,' ');$('#admin-preview-tagline').textContent=form.elements.tagline.value;});
 $$('dialog').forEach(dialog=>dialog.addEventListener('close',()=>{if(dialog.id==='booking-dialog')currentBookingId=null;}));
 setInterval(()=>{const changed=processExpiry();if(changed){renderAll();if($('#booking-dialog').open)renderBookingDetail();}const b=bookingById(currentBookingId);if(b?.status==='awaiting'&&$('#payment-timer'))$('#payment-timer').textContent=timeRemaining(b);},1000);
 $('#slot-form').elements.date.value=dayAfter(2);
 $('#slot-form').elements.date.min=dayAfter(0);
-processExpiry();renderAll();
+processExpiry();applySiteContent();renderAll();
