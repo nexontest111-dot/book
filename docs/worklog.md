@@ -125,3 +125,12 @@ docs/cloudflare-hosting.md에 공식 문서 기반 호스팅 의견, Pages의 �
 
 - feature/facility-admin 브랜치에 저장해 개발 브랜치 자동 배포를 바로 발생시키지 않는다. DB 적용 후 개발 반영이 남아 있다.
 - 로컬 파일 쓰기도 실패하여 GitHub 연결로 원격 커밋한다. 로컬 파일 반영 여부는 별도 동기화가 필요하다.
+
+## 2026-10-10 — 관리 페이지 개발 배포 요청
+
+- 사용자 명시 요청으로 feature/facility-admin 기능을 development/server-foundation에 반영하고 커밋·푸시·배포를 진행한다.
+- migrations/003 SQL 실행은 아직 사용자 결과를 받지 못했다. 관리자 지정도 미완료다.
+- DB 003 적용 전 공개 시설 조회가 실패하지 않도록 추가 컬럼이 없을 때 기존 스키마 조회로 대응했다.
+- 관리자 API는 설정 미적용 시 ADMIN_SETUP_REQUIRED, 관리자 미지정 시 ADMIN_REQUIRED로 차단한다.
+- 개발 코드 배포 완료와 실제 관리자 기능 사용 가능 여부는 별개다. SQL 적용과 관리자 지정 이후 기능 확인이 필요하다.
+- 직접 테스트는 실행하지 않았다. 개발 브랜치 push에 연결된 Cloudflare 빌드·배포 결과를 확인한다.

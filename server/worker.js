@@ -52,9 +52,18 @@ export default {
     try {
       return await withDatabase(env, async db => {
         if (!slotsMatch) {
-          const result = await db.query(
-            "SELECT id, name, sport, region, address, description, image_url, pin_order FROM booking.facilities WHERE published = true AND ($1::text IS NULL OR sport = $1) AND ($2::text IS NULL OR region = $2) ORDER BY pin_order ASC NULLS LAST, name, id LIMIT 100",
-            [sport, region]);
+          let result;
+          try {
+            result = await db.query(
+              "SELECT id, name, sport, region, address, description, image_url, pin_order FROM booking.facilities WHERE published = true AND ($1::text IS NULL OR sport = $1) AND ($2::text IS NULL OR region = $2) ORDER BY pin_order ASC NULLS LAST, name, id LIMIT 100",
+              [sport, region]);
+          } catch (error) {
+            if (error.code !== "42703") throw error;
+            // Keep public facility reads available before migration 003 is applied.
+            result = await db.query(
+              "SELECT id, name, sport, region, address, description, ''::text AS image_url, NULL::integer AS pin_order FROM booking.facilities WHERE published = true AND ($1::text IS NULL OR sport = $1) AND ($2::text IS NULL OR region = $2) ORDER BY name, id LIMIT 100",
+              [sport, region]);
+          }
           return json({ data: result.rows, limit: 100 });
         }
         const facility = await db.query("SELECT id FROM booking.facilities WHERE id = $1 AND published = true", [slotsMatch[1]]);
