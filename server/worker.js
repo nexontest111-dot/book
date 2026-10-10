@@ -1,3 +1,4 @@
+import { adminFacilities } from "./routes/admin-facilities.js";
 import { authenticate, authConfigured } from "./auth/supabase.js";
 import { withDatabase } from "./db.js";
 
@@ -12,6 +13,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     if (!(path === "/api" || path.startsWith("/api/"))) return env.ASSETS.fetch(request);
+    if (path.startsWith("/api/admin/")) return adminFacilities(request, env);
     if (path === "/api/health") {
       if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);
       return json({ service: "book", stage: "postgres-foundation",
@@ -51,7 +53,7 @@ export default {
       return await withDatabase(env, async db => {
         if (!slotsMatch) {
           const result = await db.query(
-            "SELECT id, name, sport, region, address, description FROM booking.facilities WHERE published = true AND ($1::text IS NULL OR sport = $1) AND ($2::text IS NULL OR region = $2) ORDER BY name, id LIMIT 100",
+            "SELECT id, name, sport, region, address, description, image_url, pin_order FROM booking.facilities WHERE published = true AND ($1::text IS NULL OR sport = $1) AND ($2::text IS NULL OR region = $2) ORDER BY pin_order ASC NULLS LAST, name, id LIMIT 100",
             [sport, region]);
           return json({ data: result.rows, limit: 100 });
         }

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>시설 노출 관리 — 플레이약속</title>
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/facility-admin.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="/facility-admin.js"></script></head>
+<body><header class="header"><a class="brand" href="/"><span class="brand-mark">p.</span>플레이약속</a>
+<nav><a href="/">메인 보기</a><a href="/auth">로그인</a></nav></header>
+<main><div class="page-heading"><span class="eyebrow">SERVICE ADMIN</span><h1>시설 노출 관리</h1><p>골프장과 야구장 정보를 관리하고 메인에 보여줄 순서를 정하세요.</p></div>
+<p id="admin-status" class="notice" role="status" aria-live="polite">관리자 권한을 확인하고 있습니다.</p>
+<section id="admin-workspace" hidden>
+<div class="admin-overview"><span id="facility-total"></span><button id="new-facility" class="button primary">시설 추가</button></div>
+<div class="admin-layout">
+<section class="panel admin-list-panel"><h2>등록 시설</h2>
+<form id="admin-search"><label>이름 · 지역 검색<input id="admin-query" maxlength="160" placeholder="시설 이름 또는 지역"></label><label>종목<select id="admin-sport"><option value="">전체</option><option value="golf">골프</option><option value="baseball">야구</option></select></label><button class="button" type="submit">검색</button></form>
+<div id="admin-list"></div><div class="admin-pagination"><button id="previous" class="button">이전</button><span id="page-label"></span><button id="next" class="button">다음</button></div></section>
+<form id="facility-editor" class="panel"><h2 id="editor-title">새 시설 등록</h2>
+<label>시설 이름<input name="name" required maxlength="160"></label>
+<div class="field-pair"><label>종목<select name="sport"><option value="golf">골프</option><option value="baseball">야구</option></select></label><label>지역<input name="region" required maxlength="80" placeholder="예: 경기"></label></div>
+<label>주소<input name="address" required maxlength="300"></label>
+<label>시설 소개<textarea name="description" maxlength="3000" rows="4"></textarea></label>
+<label>대표 사진 URL<input name="image_url" type="url" maxlength="2048" placeholder="https://…"></label>
+<img id="image-preview" class="admin-image" alt="대표 사진 미리보기" referrerpolicy="no-referrer" hidden>
+<p class="small muted">사진은 https 주소로 입력하세요. 이용할 권한이 있는 사진을 사용해주세요.</p>
+<label class="check-label"><input name="published" type="checkbox">메인에 공개</label>
+<label class="check-label"><input name="pinned" type="checkbox">목록 상단에 고정</label>
+<label>고정 순서<input name="pin_order" type="number" min="1" max="1000" step="1" value="1" disabled></label>
+<p class="small muted">고정 시설이 먼저 나오며 작은 숫자가 앞에 표시됩니다. 같은 숫자는 시설명 순으로 정렬됩니다. 비공개 시설은 고정해도 메인에 나오지 않습니다.</p>
+<div class="admin-actions"><button type="submit" class="button primary">저장</button><button type="button" id="cancel-edit" class="button">입력 초기화</button></div>
+<p id="save-status" role="status" aria-live="polite"></p>
+</form></div></section></main></body></html>

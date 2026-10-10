@@ -6,15 +6,17 @@
   <title>플레이약속 — 골프 · 야구 부킹</title>
   <meta name="description" content="시설의 빈 시간을 찾아 함께 플레이할 약속과 예약을 한곳에서.">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/facility-display.css">
 </head>
 <body>
-  <div class="demo-banner">화면 시안 · 모든 시설과 가격은 예시이며 실제 예약·결제는 이루어지지 않습니다.</div>
+  <div class="demo-banner">공개 시설 정보는 관리자가 등록한 데이터입니다. 아래 예약 슬롯은 시안이며 실제 예약·결제는 이루어지지 않습니다.</div>
   <header class="header">
     <a class="brand" href="#explore"><span class="brand-mark">p.</span>플레이약속<span class="brand-caption">PLAY TOGETHER</span></a>
     <nav aria-label="주요 메뉴">
       <button data-view="explore" class="nav-button active">슬롯 찾기</button>
       <button data-view="bookings" class="nav-button">내 약속 <span id="booking-count" class="count">0</span></button>
-      <button data-view="operator" class="nav-button">시설 관리</button>
+      <button data-view="operator" class="nav-button">슬롯 관리 시안</button>
+      <a href="/admin" class="nav-button">웹페이지 관리</a>
     </nav>
     <a class="nav-button" href="/auth">회원가입 · 로그인</a>
   </header>
@@ -33,7 +35,12 @@
           <button class="button primary" type="submit">슬롯 검색 <span>↗</span></button>
         </form>
       </section>
-      <section class="list-section"><div class="section-heading"><div><span class="eyebrow">OPEN SLOTS</span><h2>지금 약속할 수 있는 시간</h2></div><span id="result-count" class="muted"></span></div><div id="slot-grid" class="slot-grid"></div></section>
+      <section class="list-section published-facilities" aria-labelledby="published-facility-heading">
+        <div class="section-heading"><div><span class="eyebrow">GOLF &amp; BASEBALL</span><h2 id="published-facility-heading">함께 플레이할 시설</h2></div><button id="facility-refresh" class="button" type="button">새로고침</button></div>
+        <p id="published-facility-status" class="muted" role="status" aria-live="polite"></p>
+        <div id="published-facility-grid" class="slot-grid"></div>
+      </section>
+      <section class="list-section"><div class="section-heading"><div><span class="eyebrow">OPEN SLOTS</span><h2>예약 흐름 미리보기 · 예시 슬롯</h2></div><span id="result-count" class="muted"></span></div><div id="slot-grid" class="slot-grid"></div></section>
       <section class="how-it-works"><div><span class="eyebrow">한 번의 흐름으로</span><h2>약속부터 예약까지</h2></div><ol><li><span>01</span><strong>열린 시간 선택</strong><p>시설이 공개한 슬롯을 확인해요.</p></li><li><span>02</span><strong>함께 조건 합의</strong><p>시간과 참가 조건을 맞춰요.</p></li><li><span>03</span><strong>양측 결제 후 확정</strong><p>각자 수수료를 내면 예약이 확정돼요.</p></li></ol></section>
     </section>
     <section id="bookings-view" class="view" hidden><div class="page-heading"><span class="eyebrow">MY PLAY</span><h1>내 약속</h1><p>협의부터 결제, 확정까지 같은 곳에서 확인하세요.</p></div><div id="booking-list"></div></section>
@@ -47,5 +54,6 @@
   <dialog id="booking-dialog"><div id="booking-detail"></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <script src="app.js"></script>
+  <script src="/facility-display.js"></script>
 </body>
 </html>
