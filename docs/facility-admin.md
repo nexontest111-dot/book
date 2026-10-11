@@ -32,7 +32,7 @@ RETURNING auth_user_id, enabled;
 5. 새 시설을 등록하고 '메인에 공개'를 선택. 고정하려면 '목록 상단에 고정'과 순서 설정.
 6. 메인 새로고침으로 노출 확인.
 
-권한 해제는 Supabase 내부에서 해당 service_admins.enabled=false로 변경.
+첫 관리자는 위 SQL로 지정한다. 이후 관리자 지정·해제와 시설 운영자 연결은 /admin-permissions 화면에서 할 수 있다(코드 작성만 됨, migrations/005 미적용, 미확인. docs/admin-permissions.md). 화면 없이 해제해야 하면 해당 service_admins.enabled=false로 변경한다.
 관리자 지정 SQL은 계정 접근이 있는 사용자만 실행하며 다른 회원에게 관리자 권한을 부여하지 않는다.
 
 ## API

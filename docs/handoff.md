@@ -175,6 +175,7 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 - GET /api/auth/config (공개용 설정만), /api/me (Bearer 토큰 서버 검증 + 회원 상태)
 - PUT /api/me/membership: 표시 이름으로 booking.members 등록·수정 (2026-10-11, migrations/004 필요, docs/member-profile.md)
 - /admin 시설 관리(등록·수정·공개·상단 고정), service_admins 권한 (2026-10-10, migrations/003 필요, docs/facility-admin.md)
+- /admin-permissions 권한 관리: 서비스 관리자 지정·해제, 시설 운영자 연결 (2026-10-11, 미커밋 작성만, migrations/005 필요, docs/admin-permissions.md)
 - 이메일 가입, 인증 메일 재발송, 로그인/로그아웃 UI: /auth
 - 서버 getUser와 email_confirmed_at 검증. JWT 단순 디코딩이나 user_metadata를 권한으로 신뢰하지 않음.
 - 골프/야구 상세 분리, UTC 저장/한국 날짜 기준 조회.
@@ -192,7 +193,8 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 미완성:
 - Supabase 인증 회원 → booking.members 등록: 코드·migrations/004 작성, 78e2ede 까지 개발 브랜치 푸시(자동 배포 결과 미확인). 004 SQL 미적용, 실제 동작 미확인. docs/member-profile.md 참고.
 - migrations/003(시설 관리) 적용과 관리자 지정도 사용자 결과 미확인.
-- 실제 시설 운영자 권한, 등록/수정, 슬롯 공개 및 화면 DB 연결.
+- 관리자 권한 관리(/admin-permissions): 코드·migrations/005 작성만, 미커밋·미배포·005 미적용·동작 미확인. 적용 순서 003 → 004 → 005, 첫 관리자 지정 필요. docs/admin-permissions.md 참고.
+- 시설 운영자가 자기 시설·슬롯을 관리하는 API/화면, GET /api/me operatorAccess 계산(현재 항상 false), 슬롯 공개 및 화면 DB 연결.
 - 서버 협의/예약/홀드/결제/환불 및 동시 예약 충돌 방지.
 - 기존 메인 예약/시설 관리 화면은 localStorage 기반 시안.
 - 비밀번호 재설정, 탈퇴, 출시용 약관·개인정보 동의, 일반 회원용 SMTP.
@@ -214,7 +216,7 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 
 다음 구현 순서:
 1. 회원 DB 연결 방식과 최소 프로필. (코드 완료, 003→004 SQL 적용과 /auth 확인 대기)
-2. 시설 소유권·운영자 자격을 서버에서 검사.
+2. 시설 소유권·운영자 자격을 서버에서 검사. (운영자 연결 관리 화면/API는 작성됨, 005 적용 대기. 운영자의 자기 시설·슬롯 관리와 operatorAccess 계산이 남음)
 3. 시설/자원/종목 상세 일치 제약, 실제 슬롯 등록·공개.
 4. 기존 화면을 실제 API로 연결.
 5. 예약 상태·제안 버전·동의·홀드 및 만료 구현.

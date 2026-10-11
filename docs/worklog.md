@@ -206,3 +206,52 @@ docs/worklog.md, member-profile.md(신규), supabase-connection.md, email-auth-s
 - .gitignore 에서 `_workspace/`, `_workspace_*/` 제외 규칙을 지웠다. 위 섹션의 "_workspace 는 넘어가지 않는다" 기록은 이 변경으로 더 이상 맞지 않는다.
 - booking-orchestrator 스킬과 docs/handoff.md 2-1절의 _workspace 설명을 맞게 고쳤다.
 - _workspace 산출물(01 계획 ~ 05 QA 보고, freeze_build.sha)은 비밀값 패턴 검색 결과 해당 없음.
+
+## 2026-10-11 — 관리자 권한 관리 페이지
+
+### 결정 (사용자, 2026-10-11)
+- 서비스 관리자 지정·해제와 시설 운영자 연결을 모두 구현한다.
+- 대상 계정은 이메일 정확 일치로 찾는다.
+
+### 작업 환경
+- 브랜치 development/server-foundation. 아래 변경은 모두 미커밋이며 이번 작업에서 커밋하지 않았다.
+- 이전 회원 등록 작업 산출물은 _workspace_20261011-member/ 로 옮겨졌다(저장소 추적). 이번 산출물은 _workspace/ (00_contract_fixed, 01 계획 ~ 05 QA 보고).
+
+### 구현 파일 (미커밋)
+- migrations/005_admin_permissions.sql(신규): facility_operators.created_at, permission_audit 테이블, SECURITY DEFINER 함수 booking.admin_permissions(actor, issuer, action, data), book_reader 에만 EXECUTE.
+- server/routes/admin-permissions.js(신규): /api/admin/permissions 6개 API.
+- server/auth/issuer.js(신규): issuer 계산 공용화. server/routes/me.js 가 이를 사용하며 값은 기존과 동일.
+- server/worker.js: /api/admin/permissions 분기 추가.
+- prototype/admin-permissions.html, .js, .css(신규, 경로 /admin-permissions), prototype/admin.html(권한 관리 링크).
+
+### 동작 요약
+- API: GET·POST /api/admin/permissions/admins, DELETE .../admins/{authUserId}, GET·POST .../operators, DELETE .../operators/{facilityId}/{memberId}.
+- 자기 해제 금지(SELF_REVOKE), 마지막 관리자 보호(LAST_ADMIN, 방어용), 이메일 정확 일치와 후보 2명 이상 거부(USER_NOT_FOUND).
+- 운영자 연결은 대상이 booking.members 에 등록돼 있어야 한다(MEMBER_NOT_REGISTERED).
+- 상태가 바뀐 경우에만 permission_audit 에 같은 트랜잭션으로 기록.
+- 상세: docs/admin-permissions.md.
+
+### 검증 (실행한 것)
+- static-check 통과, node --check 통과.
+- qa 가 가짜 pg/supabase 모듈로 라우트 51건, 40001 매핑, who() 를 실행했다. 실제 DB·네트워크가 아니다.
+
+### 미검증 (실행하지 않음)
+- 005 SQL 의 실제 적용과 문법 실행(어떤 DB 에도 적용하지 않았다).
+- 동시성(잠금·교착 방지)은 코드 분석만 했고 실제 재현은 하지 않았다.
+- wrangler dev, 배포, 브라우저·모바일 화면.
+- 사용자 확인 근거는 없다. 따라서 기능 동작은 완료로 보지 않는다.
+
+### QA 결과
+- 1차 높음 0, 중간 2, 낮음 6. 모두 해결. 최종 재검증에서 신규 낮음 1건이 나왔고 해결.
+- 운영 주의: permission_audit FK 가 ON DELETE RESTRICT 라 권한을 지정·해제한 사람과 대상자는 Supabase 에서 auth 사용자 삭제가 막힌다. 탈퇴 정책 결정 때 재검토.
+
+### 사용자 실행 필요
+1. 미적용분을 순서대로 적용: 003 → 004 → 005 (Supabase SQL Editor). 005 사전·사후 확인 쿼리는 docs/admin-permissions.md 와 _workspace/02_db-architect_schema-notes.md 6절.
+2. 첫 관리자 지정(docs/facility-admin.md 의 SQL).
+3. 개발 배포 후 /admin-permissions 에서 동작 확인.
+
+### 갱신한 문서
+docs/worklog.md, admin-permissions.md(신규), facility-admin.md, handoff.md, server-implementation-plan.md, development-deployment-status.md.
+
+### 다음 시작점
+시설 운영자가 자기 시설·슬롯을 관리하는 API/화면과 GET /api/me 의 operatorAccess 계산.
