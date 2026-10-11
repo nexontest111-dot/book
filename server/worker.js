@@ -1,5 +1,6 @@
 import { adminFacilities } from "./routes/admin-facilities.js";
-import { authenticate, authConfigured } from "./auth/supabase.js";
+import { meRoutes } from "./routes/me.js";
+import { authConfigured } from "./auth/supabase.js";
 import { withDatabase } from "./db.js";
 
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
@@ -27,13 +28,7 @@ export default {
       if (!env.SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_")) return error("INVALID_PUBLIC_KEY_CONFIGURATION", 503);
       return json({ url: env.SUPABASE_URL, publishableKey: env.SUPABASE_PUBLISHABLE_KEY });
     }
-    if (path === "/api/me") {
-      if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);
-      const result = await authenticate(request, env);
-      if (result.error) return error(result.error, result.status);
-      return json({ data: { authUserId: result.user.id, email: result.user.email ?? null },
-        membership: "not_provisioned", operatorAccess: false });
-    }
+    if (path === "/api/me" || path.startsWith("/api/me/")) return meRoutes(request, env);
     const slotsMatch = path.match(/^\/api\/facilities\/([^/]+)\/slots$/);
     if (path !== "/api/facilities" && !slotsMatch) return error("API_NOT_IMPLEMENTED", 501);
     if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);

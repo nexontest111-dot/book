@@ -15,28 +15,126 @@
     if (error?.code === "invalid_credentials") return "이메일과 비밀번호를 확인해주세요.";
     return "요청을 완료하지 못했습니다. 입력과 네트워크 상태를 확인하고 다시 시도해주세요.";
   };
+  const memberBox = document.querySelector("#member");
+  const memberForm = document.querySelector("#member-form");
+  const memberControls = document.querySelector("#member-controls");
+  const displayName = document.querySelector("#display-name");
+  const memberSave = document.querySelector("#member-save");
+  const MEMBER_ERRORS = {
+    UNAUTHORIZED: "로그인이 만료됐습니다. 다시 로그인해주세요.",
+    EMAIL_NOT_CONFIRMED: "이메일 인증을 완료해주세요.",
+    INVALID_DISPLAY_NAME: "표시 이름은 앞뒤 공백을 뺀 1~80자로, 제어 문자 없이 입력해주세요.",
+    JSON_REQUIRED: "요청 형식이 올바르지 않습니다. 새로고침 후 다시 시도해주세요.",
+    BODY_TOO_LARGE: "입력이 너무 깁니다. 표시 이름을 줄여주세요.",
+    ORIGIN_NOT_ALLOWED: "허용되지 않은 접속 경로입니다. 공식 주소에서 다시 시도해주세요.",
+    MEMBER_SETUP_REQUIRED: "회원 정보 저장 준비 중입니다. 잠시 후 다시 시도해주세요.",
+    DATABASE_NOT_CONFIGURED: "회원 정보 저장 준비 중입니다. 잠시 후 다시 시도해주세요.",
+    DATABASE_UNAVAILABLE: "서버 데이터 저장소에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.",
+    AUTH_UNAVAILABLE: "로그인 확인 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해주세요."
+  };
+  let memberBusy = false, memberState = "", currentUserId = null, lastServerName = null;
+  const API_TIMEOUT = 25000;
+  const retryButton = document.querySelector("#member-retry");
+  function renderMember(membership, member) {
+    memberBox.hidden = false;
+    const nameLine = document.querySelector("#member-name");
+    const note = document.querySelector("#member-note");
+    nameLine.hidden = true;
+    document.querySelector("#member-name-value").textContent = "";
+    memberControls.disabled = false; retryButton.hidden = true; memberState = membership; lastServerName = member?.displayName ?? null;
+    if (membership === "unavailable") {
+      document.querySelector("#member-title").textContent = "회원 정보";
+      note.textContent = "회원 정보를 잠시 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+      memberControls.disabled = true; retryButton.hidden = false;
+    } else if (membership === "setup_required") {
+      document.querySelector("#member-title").textContent = "회원 정보 저장 준비 중";
+      note.textContent = "회원 정보 저장 기능을 준비하고 있습니다. 준비가 끝나면 표시 이름을 등록할 수 있습니다.";
+      memberControls.disabled = true; displayName.value = "";
+    } else if (membership === "active" && member) {
+      document.querySelector("#member-title").textContent = "회원 정보";
+      document.querySelector("#member-name-value").textContent = member.displayName ?? "";
+      nameLine.hidden = false; note.textContent = "";
+      displayName.value = member.displayName ?? ""; memberSave.textContent = "표시 이름 수정";
+    } else {
+      document.querySelector("#member-title").textContent = "가입 완료";
+      note.textContent = "서비스에서 사용할 표시 이름을 입력하면 가입이 완료됩니다.";
+      displayName.value = ""; memberSave.textContent = "가입 완료";
+    }
+  }
+  memberForm.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (memberBusy || !client) return;
+    const name = displayName.value.trim();
+    if (!name || [...name].length > 80) { tell(MEMBER_ERRORS.INVALID_DISPLAY_NAME); displayName.focus(); return; }
+    memberBusy = true; memberControls.disabled = true;
+    try {
+      const { data, error } = await client.auth.getSession();
+      if (error || !data.session) { tell(MEMBER_ERRORS.UNAUTHORIZED); return; }
+      const startUserId = data.session.user?.id ?? null;
+      tell("표시 이름을 저장하고 있습니다.");
+      const response = await fetch("/api/me/membership", { method: "PUT", cache: "no-store",
+        headers: { Authorization: "Bearer " + data.session.access_token, "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: name }), signal: AbortSignal.timeout(API_TIMEOUT) });
+      let body = null;
+      try { body = await response.json(); } catch { /* non-JSON error body */ }
+      if (!startUserId || startUserId !== currentUserId || signedIn.hidden) return; // user changed or signed out
+      if (!response.ok || !body?.member) {
+        tell(MEMBER_ERRORS[body?.error?.code] ?? "표시 이름을 저장하지 못했습니다. 잠시 후 다시 시도해주세요.");
+        if (["MEMBER_SETUP_REQUIRED", "DATABASE_NOT_CONFIGURED"].includes(body?.error?.code)) renderMember("setup_required", null);
+        return;
+      }
+      revision++; // invalidate any older in-flight GET /api/me
+      renderMember("active", body.member);
+      tell(response.status === 201 ? "가입이 완료됐습니다." : "표시 이름을 수정했습니다.");
+    } catch {
+      tell("서버에 연결하지 못했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      memberBusy = false;
+      if (!memberBox.hidden && memberState !== "setup_required" && memberState !== "unavailable") memberControls.disabled = false;
+    }
+  });
   async function showSession(session) {
     const version = ++revision;
-    signedIn.hidden = true;
-    form.hidden = false;
-    document.querySelector("#account-email").textContent = "";
+    const sameUser = session && session.user?.id === currentUserId && !signedIn.hidden;
+    if (!sameUser) {
+      currentUserId = null;
+      signedIn.hidden = true;
+      form.hidden = false;
+      memberBox.hidden = true; displayName.value = ""; memberState = "";
+      document.querySelector("#account-email").textContent = "";
+    }
     if (!session) return;
     try {
       const response = await fetch("/api/me", { headers: { Authorization: "Bearer " + session.access_token },
-        cache: "no-store", signal: AbortSignal.timeout(10000) });
+        cache: "no-store", signal: AbortSignal.timeout(API_TIMEOUT) });
       const body = await response.json();
       if (version !== revision) return;
       if (!response.ok) {
+        if (sameUser) renderMember("unavailable", null);
         tell(body.error?.code === "EMAIL_NOT_CONFIRMED" ? "이메일 인증을 완료해주세요." : "로그인을 서버에서 확인하지 못했습니다. 다시 로그인하거나 잠시 후 재시도해주세요.");
         return;
       }
       document.querySelector("#account-email").textContent = body.data.email ?? "";
       signedIn.hidden = false; form.hidden = true;
-      tell("서버에서 로그인을 확인했습니다.");
+      currentUserId = session.user?.id ?? null;
+      const keepInput = sameUser && memberState === body.membership && (body.membership !== "active" || lastServerName === (body.member?.displayName ?? null));
+      if (!keepInput) renderMember(body.membership, body.member);
+      tell(body.membership === "unavailable" ? "로그인은 확인했지만 회원 정보를 불러오지 못했습니다." : body.membership === "not_provisioned" ? "서버에서 로그인을 확인했습니다. 표시 이름을 입력해 가입을 완료해주세요." : "서버에서 로그인을 확인했습니다.");
     } catch {
-      if (version === revision) tell("서버에 연결하지 못했습니다. 잠시 후 다시 로그인해주세요.");
+      if (version === revision) {
+        if (sameUser) renderMember("unavailable", null);
+        tell("서버에 연결하지 못했습니다. 잠시 후 다시 로그인해주세요.");
+      }
     }
   }
+  retryButton.addEventListener("click", async () => {
+    if (!client || memberBusy) return;
+    retryButton.disabled = true;
+    try {
+      const { data } = await client.auth.getSession();
+      if (data.session) { currentUserId = null; signedIn.hidden = true; await showSession(data.session); }
+    } finally { retryButton.disabled = false; }
+  });
   async function perform(task) {
     if (busy) return;
     busy = true; controls.disabled = true;
@@ -86,7 +184,11 @@
       });
       client.auth.onAuthStateChange((_event, session) => {
         // SDK callbacks must not await another auth operation.
-        setTimeout(() => { showSession(session); }, 0);
+        setTimeout(() => {
+          // Token refresh for the signed-in user must not reset the member form or state.
+          if (session && session.user?.id === currentUserId && !signedIn.hidden) return;
+          showSession(session);
+        }, 0);
       });
       const { data, error } = await client.auth.getSession();
       if (error) throw error;
