@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>권한 관리 — 플레이약속</title>
+<link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/facility-admin.css"><link rel="stylesheet" href="/admin-permissions.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="/admin-permissions.js"></script></head>
+<body><header class="header"><a class="brand" href="/"><span class="brand-mark">p.</span>플레이약속</a>
+<nav><a href="/admin">시설 관리</a><a href="/">메인 보기</a><a href="/auth">로그인</a></nav></header>
+<main><div class="page-heading"><span class="eyebrow">SERVICE ADMIN</span><h1>권한 관리</h1><p>서비스 관리자와 시설 운영자를 이메일로 지정하고 해제합니다.</p></div>
+<p id="perm-status" class="notice" role="status" aria-live="polite">관리자 권한을 확인하고 있습니다.</p>
+<div id="perm-workspace" hidden>
+<section class="panel perm-panel" aria-labelledby="admins-title"><h2 id="admins-title">서비스 관리자</h2>
+<form id="admin-grant" class="perm-form" novalidate><label>이메일 (정확히 입력)<input id="admin-email" type="email" maxlength="254" autocomplete="off" placeholder="name@example.com" required></label><button class="button primary" type="submit">관리자로 지정</button></form>
+<p id="admin-msg" class="small perm-msg" role="status" aria-live="polite"></p>
+<div id="admin-list"></div></section>
+<section class="panel perm-panel" aria-labelledby="operators-title"><h2 id="operators-title">시설 운영자</h2>
+<form id="facility-search" class="perm-form" novalidate><label>시설 검색<input id="facility-query" maxlength="160" placeholder="시설 이름 또는 지역"></label><button class="button" type="submit">검색</button></form>
+<p id="facility-msg" class="small perm-msg" role="status" aria-live="polite"></p>
+<div id="facility-list"></div>
+<div class="admin-pagination"><button id="facility-prev" class="button" type="button">이전</button><span id="facility-page"></span><button id="facility-next" class="button" type="button">다음</button></div>
+<div id="operator-area" hidden><h3 id="operator-title"></h3>
+<form id="operator-grant" class="perm-form" novalidate><label>이메일 (회원 가입한 계정)<input id="operator-email" type="email" maxlength="254" autocomplete="off" placeholder="name@example.com" required></label><button class="button primary" type="submit">운영자로 연결</button></form>
+<p id="operator-msg" class="small perm-msg" role="status" aria-live="polite"></p>
+<div id="operator-list"></div></div></section>
+</div></main></body></html>

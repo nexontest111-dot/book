@@ -1,4 +1,5 @@
 import { adminFacilities } from "./routes/admin-facilities.js";
+import { adminPermissions } from "./routes/admin-permissions.js";
 import { meRoutes } from "./routes/me.js";
 import { authConfigured } from "./auth/supabase.js";
 import { withDatabase } from "./db.js";
@@ -14,6 +15,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     if (!(path === "/api" || path.startsWith("/api/"))) return env.ASSETS.fetch(request);
+    if (path === "/api/admin/permissions" || path.startsWith("/api/admin/permissions/")) return adminPermissions(request, env);
     if (path.startsWith("/api/admin/")) return adminFacilities(request, env);
     if (path === "/api/health") {
       if (request.method !== "GET") return error("METHOD_NOT_ALLOWED", 405);

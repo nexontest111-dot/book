@@ -1,4 +1,5 @@
 import { authenticate } from "../auth/supabase.js";
+import { issuerOf } from "../auth/issuer.js";
 import { withDatabase } from "../db.js";
 import { json, fail, InputError, readJsonBody } from "../http.js";
 
@@ -14,10 +15,6 @@ function logDatabaseError(route, e) {
   const message = KNOWN_MESSAGES.includes(e?.message) ? e.message : "-";
   console.error(`member_profile ${route} failed: sqlstate=${code} message=${message}`);
 }
-
-// Issuer is decided by the server from configuration, never by the client.
-// authenticate() has already verified SUPABASE_URL is a valid https URL.
-const issuerOf = env => new URL(env.SUPABASE_URL).origin + "/auth/v1";
 
 function memberOf(value) {
   if (!value || typeof value !== "object" || typeof value.id !== "string") return null;
