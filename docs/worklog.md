@@ -134,3 +134,55 @@ docs/cloudflare-hosting.md에 공식 문서 기반 호스팅 의견, Pages의 �
 - 관리자 API는 설정 미적용 시 ADMIN_SETUP_REQUIRED, 관리자 미지정 시 ADMIN_REQUIRED로 차단한다.
 - 개발 코드 배포 완료와 실제 관리자 기능 사용 가능 여부는 별개다. SQL 적용과 관리자 지정 이후 기능 확인이 필요하다.
 - 직접 테스트는 실행하지 않았다. 개발 브랜치 push에 연결된 Cloudflare 빌드·배포 결과를 확인한다.
+
+## 2026-10-11 — 인증 회원 등록(booking.members)
+
+### 결정 (사용자, 2026-10-11)
+- 표시 이름은 가입 시점이 아니라 로그인 후 별도 단계에서 입력한다.
+- 약관·개인정보 동의는 이번 범위 밖이다.
+
+### 작업 환경
+- 브랜치 development/server-foundation. 작업 전 origin 에서 6c6ce57 까지 fast-forward pull.
+- 아래 변경은 모두 미커밋이다. 이번 작업에서 커밋하지 않았다.
+
+### 구현 파일 (미커밋)
+- migrations/004_member_profile.sql(신규): members.updated_at, 표시 이름 CHECK 2개(앞뒤 공백, 제어 문자), SECURITY DEFINER 함수 booking.member_profile(issuer, subject, action, display_name), book_reader 에만 EXECUTE.
+- server/routes/me.js(신규): /api/me, /api/me/membership.
+- server/http.js(신규): JSON 본문 읽기 등 공용 헬퍼.
+- server/worker.js: /api/me, /api/me/* 를 me.js 로 위임.
+- prototype/auth.html, auth.js, auth.css: 로그인 후 표시 이름 입력 단계.
+
+### API 동작 요약
+- 회원 식별: issuer = SUPABASE_URL 의 origin + /auth/v1, subject = Supabase getUser 의 user.id. 요청 본문의 식별 값은 쓰지 않는다.
+- GET /api/me: 200 과 함께 membership 4상태. active(회원 있음), not_provisioned(회원 행 없음), setup_required(HYPERDRIVE 바인딩 없음 또는 004 미적용), unavailable(인증은 성공했으나 그 밖의 DB 오류). operatorAccess 는 항상 false.
+- PUT /api/me/membership: 표시 이름 등록·수정(멱등 upsert). 신규 201, 기존 200(같은 이름 재요청은 쓰기 없이 200). 표시 이름은 trim 후 1~80 코드 포인트, 제어 문자·짝 없는 서로게이트 금지.
+- 상세 계약과 적용 절차: docs/member-profile.md.
+
+### 검증 (실행한 것)
+- static-check 통과, node --check 통과(me.js, http.js, worker.js, admin-facilities.js, auth.js).
+- qa 가 가짜 pg/supabase 모듈로 라우트 57건을 실행해 상태·코드, 서로게이트, Origin, 본문, 로그 내용, 라우팅 회귀가 정상임을 확인했다. 실제 DB·네트워크가 아니다.
+- JS trim 공백 집합과 SQL CHECK 공백 집합, 제어 문자 범위가 일치함을 전수 비교했다.
+
+### 미검증 (실행하지 않음)
+- 004 SQL 의 실제 적용과 문법 실행(어떤 DB 에도 적용하지 않았다).
+- 동시 첫 요청 경합.
+- 브라우저·모바일 화면, wrangler dev, 배포.
+- 사용자 확인 근거는 없다. 따라서 회원 등록 기능의 동작은 완료로 보지 않는다.
+
+### QA 결과
+- 1차 높음 0, 중간 2, 낮음 10, 참고 2. 2차 재검증 후 높음 0, 신규 낮음 3건(auth.js). 3차 재검증에서 그 3건 해결, 신규 결함 없음(코드 추적 근거, 브라우저 재현은 미실행).
+- 남은 정책 항목 L10: 방향 제어·영폭 문자 허용 여부 미정(현재 허용).
+- 참고: SUPABASE_URL 의 origin 이 바뀌면 같은 사람이 다른 회원으로 갈라지므로 데이터 이전이 필요하다.
+- L9(문서)는 이번에 해소: docs/supabase-connection.md 문구 갱신, docs/member-profile.md 신규.
+- 산출물 해시: _workspace/freeze_build.sha.
+
+### 사용자 실행 필요
+1. 003 미적용이면 003 → 004 순서로 Supabase SQL Editor 에서 적용(절차와 확인 쿼리: docs/member-profile.md).
+2. 시설 관리자 지정(docs/facility-admin.md).
+3. 개발 배포 후 /auth 에서 표시 이름 등록 확인.
+
+### 갱신한 문서
+docs/worklog.md, member-profile.md(신규), supabase-connection.md, email-auth-setup.md, development-deployment-status.md, server-implementation-plan.md, handoff.md.
+
+### 다음 시작점
+시설 운영자 권한(facility_operators 서버 검사) → 슬롯 등록.

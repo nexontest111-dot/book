@@ -15,6 +15,7 @@
 - 본인 인증과 별개로 booking.members 등록, 운영자 권한 및 예약 기능은 아직 미구현.
 - 예약 시안 데이터는 브라우저 저장이며 실제 DB와 연결되지 않는다.
 - 로컬 실행 환경 오류로 원격 GitHub 연결을 사용했다. 로컬 Git 동기화는 미확인.
+- 2026-10-11 추가(미커밋, 미배포): 회원 등록 코드(/api/me membership, PUT /api/me/membership)와 migrations/004 작성. 004 는 어떤 DB 에도 미적용이며 실제 동작은 확인되지 않았다. 절차: member-profile.md
 - 상세: worklog.md
 
 개발 명령: npx wrangler deploy --config wrangler.development.jsonc

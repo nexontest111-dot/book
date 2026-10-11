@@ -41,7 +41,10 @@ GET /api/me에 Authorization: Bearer <access_token>을 보내면
 Supabase Auth getUser로 서버 검증 후 본인 ID·이메일만 반환한다.
 JWT 내용만 읽어 로그인 여부나 운영자 권한을 판단하지 않는다.
 운영자 자격은 추후 booking.facility_operators와 서버에서 검사한다.
-현재 /api/me는 회원 DB 등록을 하지 않으며 운영자 권한을 부여하지 않는다.
+GET /api/me는 DB 회원 상태(membership: active, not_provisioned, setup_required, unavailable)를 읽기만 하고 회원을 만들지 않는다.
+회원 등록은 PUT /api/me/membership(표시 이름)으로 하며 DB 함수 booking.member_profile(migrations/004)을 쓴다.
+004 적용 절차는 member-profile.md 참고. 004 미적용(작성만 됨, 적용 미확인)이면 setup_required 로 응답한다.
+운영자 권한은 부여하지 않으며 operatorAccess 는 항상 false 다.
 
 ## 5. 다음 구현
 로그인 형태(이메일 비밀번호, 이메일 링크, 소셜)는 아직 미정이다.

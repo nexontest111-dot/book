@@ -176,7 +176,7 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 - trans/*.png는 이전 머신의 참고 자료다. 새 머신에 있다고 가정하지 않고 키/개인정보가 있어 전체 업로드하지 않는다.
 
 미완성:
-- Supabase 인증 회원 → booking.members 등록/연결.
+- Supabase 인증 회원 → booking.members 등록/연결. (2026-10-11 코드·migrations/004 작성, 미적용·미배포. docs/member-profile.md 참고)
 - 실제 시설 운영자 권한, 등록/수정, 슬롯 공개 및 화면 DB 연결.
 - 서버 협의/예약/홀드/결제/환불 및 동시 예약 충돌 방지.
 - 기존 메인 예약/시설 관리 화면은 localStorage 기반 시안.
