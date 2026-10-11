@@ -186,3 +186,16 @@ docs/worklog.md, member-profile.md(신규), supabase-connection.md, email-auth-s
 
 ### 다음 시작점
 시설 운영자 권한(facility_operators 서버 검사) → 슬롯 등록.
+
+## 2026-10-11 — 다른 머신 재개를 위한 하네스 포함과 인수인계 갱신
+
+- 사용자 요청: 다른 머신에서도 이어서 작업할 수 있게 워크로그 기록과 Claude 설정 포함.
+- 1c9fb36(feat: 회원 등록), 78e2ede(docs) 를 development/server-foundation 에 푸시했다. 푸시에 따른 Cloudflare 자동 빌드·배포 결과는 확인하지 않았다.
+- CLAUDE.md 와 .claude/(agents 5개, skills 7개, qa 정적 검사 스크립트)를 저장소에 포함했다. 포함 전 비밀값 패턴을 검색해 해당 없음을 확인했다.
+- _workspace/ 는 .gitignore 대상이라 다른 머신에 넘어가지 않는다. 이번 작업 근거는 위 2026-10-11 섹션과 docs/member-profile.md 에 있다.
+- docs/handoff.md 갱신: 하네스 사용법(2-1절), 구현 범위에 /admin·회원 등록 추가, 003·004 SQL 적용 미확인, 새 세션 요청문.
+
+### 다음 시작점
+1. 사용자: 003(미적용 시) → 004 SQL 적용, 관리자 지정, 개발 배포 완료 확인, /auth 에서 표시 이름 등록 확인.
+2. 구현: 시설 운영자 권한(facility_operators 서버 검사) → 슬롯 등록·공개.
+3. 미정 정책: 표시 이름의 방향 제어·영폭 문자 허용 여부.

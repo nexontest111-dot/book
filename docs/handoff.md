@@ -1,6 +1,6 @@
 # 다른 머신에서 작업 이어가기
 
-작성일: 2026-10-10 (Asia/Seoul)
+작성일: 2026-10-10 (Asia/Seoul), 갱신: 2026-10-11 (회원 등록, Claude Code 하네스)
 이 문서는 새 머신 또는 새 작업 세션의 첫 확인 문서다.
 기능 완료 근거는 2026-10-08 사용자 로그·화면 및 GitHub 빌드 결과다. 2026-10-10 전체 서비스를 재검증한 기록은 아니다.
 
@@ -10,7 +10,8 @@
 - 소유자: nexontest111-dot. 도구 연결 프로필 표시 이름은 JuneTMStudios였다.
 - 작업 브랜치: development/server-foundation
 - 기존 머신 로컬 경로: C:\projects\booksys\book
-- 인수인계 작성 직전 HEAD: 49797534aa1803572d2e2eb6dacc2333e94421eb
+- 인수인계 최초 작성 직전 HEAD: 49797534aa1803572d2e2eb6dacc2333e94421eb
+- 2026-10-11 회원 등록 커밋: 1c9fb36(feat), 78e2ede(docs). 이후 하네스·인수인계 갱신 커밋은 git log로 확인.
 - 새 머신은 이 문서가 포함된 개발 브랜치의 최신 HEAD를 사용한다.
 - 운영 main과 개발 브랜치를 혼동하지 않는다.
 
@@ -36,7 +37,7 @@ git log -1 --oneline
 pull 전에 미커밋 작업이 있으면 보존하고 차이를 검토한다. 자동 reset/clean/force push를 하지 않는다.
 
 문서 확인 순서:
-1. 저장소 및 상위 경로의 AGENTS.md 등 개발 지침이 있다면 먼저 읽는다.
+1. 저장소 루트 CLAUDE.md(Claude Code 하네스 지침), 상위 경로의 AGENTS.md 등 개발 지침이 있다면 먼저 읽는다.
 2. 이 문서, worklog.md
 3. requirements-draft.md, payment-policy-proposal.md, booking-design.md
 4. server-implementation-plan.md, postgresql-setup.md, email-auth-setup.md
@@ -50,6 +51,17 @@ pull 전에 미커밋 작업이 있으면 보존하고 차이를 검토한다. �
 - 개발 실행 설정은 npm run dev 또는 npx wrangler dev --config wrangler.development.jsonc.
 - 로컬 Hyperdrive는 실제 로컬 DB 연결 또는 지원되는 원격 개발 방식 설정이 추가로 필요하다. 현재 설정만으로 로컬 실행이 준비됐다고 가정하지 않는다.
 - 로컬 DB 연결 문자열을 준비한다면 저장소에 넣지 말고 무시되는 환경 파일/개인 설정으로 관리한다.
+
+## 2-1. Claude Code 하네스 (2026-10-11 저장소에 포함)
+
+Claude Code로 이어서 작업하면 저장소의 하네스가 자동으로 적용된다.
+- CLAUDE.md: 예약 서비스 기능 구현·수정·검증 요청 시 booking-orchestrator 스킬을 쓰도록 지시.
+- .claude/agents/: db-architect, api-developer, frontend-developer, qa-inspector, doc-keeper.
+- .claude/skills/: booking-orchestrator(조율), booking-domain-rules(승인·미정 정책, 불변식), supabase-migration, worker-api, frontend-integration, qa-boundary-check(정적 검사 scripts/static-check.mjs), worklog-recording.
+- 작업 중간 산출물은 _workspace/ 에 쓰며 .gitignore로 제외된다. 다른 머신에는 넘어가지 않으므로 완료된 작업의 근거는 docs/worklog.md와 기능별 docs 문서에 남긴다.
+- 정적 검사: node .claude/skills/qa-boundary-check/scripts/static-check.mjs .
+- 새 머신에서 시작 예: claude 실행 후 "워크로그 확인하고 작업할 내용 파악해줘 (하네스로)".
+- Claude Code 로그인, 플러그인, 개인 메모리(~/.claude)는 머신별이며 저장소에 포함되지 않는다.
 
 ## 3. 외부 도구 및 계정 연결
 
@@ -160,7 +172,9 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 구현:
 - Worker API 및 정적 파일 통합, PostgreSQL 공개 시설·날짜별 슬롯 조회.
 - GET /api/health, /api/facilities, /api/facilities/{id}/slots?date=YYYY-MM-DD
-- GET /api/auth/config (공개용 설정만), /api/me (Bearer 토큰 서버 검증)
+- GET /api/auth/config (공개용 설정만), /api/me (Bearer 토큰 서버 검증 + 회원 상태)
+- PUT /api/me/membership: 표시 이름으로 booking.members 등록·수정 (2026-10-11, migrations/004 필요, docs/member-profile.md)
+- /admin 시설 관리(등록·수정·공개·상단 고정), service_admins 권한 (2026-10-10, migrations/003 필요, docs/facility-admin.md)
 - 이메일 가입, 인증 메일 재발송, 로그인/로그아웃 UI: /auth
 - 서버 getUser와 email_confirmed_at 검증. JWT 단순 디코딩이나 user_metadata를 권한으로 신뢰하지 않음.
 - 골프/야구 상세 분리, UTC 저장/한국 날짜 기준 조회.
@@ -176,7 +190,8 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 - trans/*.png는 이전 머신의 참고 자료다. 새 머신에 있다고 가정하지 않고 키/개인정보가 있어 전체 업로드하지 않는다.
 
 미완성:
-- Supabase 인증 회원 → booking.members 등록/연결. (2026-10-11 코드·migrations/004 작성, 미적용·미배포. docs/member-profile.md 참고)
+- Supabase 인증 회원 → booking.members 등록: 코드·migrations/004 작성, 78e2ede 까지 개발 브랜치 푸시(자동 배포 결과 미확인). 004 SQL 미적용, 실제 동작 미확인. docs/member-profile.md 참고.
+- migrations/003(시설 관리) 적용과 관리자 지정도 사용자 결과 미확인.
 - 실제 시설 운영자 권한, 등록/수정, 슬롯 공개 및 화면 DB 연결.
 - 서버 협의/예약/홀드/결제/환불 및 동시 예약 충돌 방지.
 - 기존 메인 예약/시설 관리 화면은 localStorage 기반 시안.
@@ -198,7 +213,7 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 - 현재 UNIQUE 슬롯 제약은 같은 슬롯의 중복만 막으며 실제 겹치는 예약 방지는 다음 작업.
 
 다음 구현 순서:
-1. 회원 DB 연결 방식과 최소 프로필.
+1. 회원 DB 연결 방식과 최소 프로필. (코드 완료, 003→004 SQL 적용과 /auth 확인 대기)
 2. 시설 소유권·운영자 자격을 서버에서 검사.
 3. 시설/자원/종목 상세 일치 제약, 실제 슬롯 등록·공개.
 4. 기존 화면을 실제 API로 연결.
@@ -219,6 +234,8 @@ URI에서는 비밀번호에 특수문자가 있으면 URL 인코딩 또는 수�
 > nexontest111-dot/book의 development/server-foundation 브랜치에서 작업을 이어가주세요.
 > docs/handoff.md와 docs/worklog.md, 저장소 지침을 먼저 읽고 현황을 확인하세요.
 > Supabase·Hyperdrive·이메일 인증 로그인은 개발 사이트에서 확인됐습니다.
-> 다음은 회원 DB 연결과 시설 운영자 권한/실제 슬롯 등록입니다.
+> 회원 등록(migrations/004)과 시설 관리(003)는 코드만 있고 SQL 적용 결과는 미확인입니다. 먼저 적용 여부를 확인하세요.
+> 다음 구현은 시설 운영자 권한(facility_operators 서버 검사)과 실제 슬롯 등록입니다.
+> Claude Code라면 CLAUDE.md의 하네스(booking-orchestrator)로 진행하세요.
 > 실제 예약·결제는 아직 없습니다. 사업 정책을 임의 확정하지 마세요.
 > 로컬 변경을 보존하고 요청 없이 테스트·빌드·배포하지 마세요.
