@@ -199,3 +199,10 @@ docs/worklog.md, member-profile.md(신규), supabase-connection.md, email-auth-s
 1. 사용자: 003(미적용 시) → 004 SQL 적용, 관리자 지정, 개발 배포 완료 확인, /auth 에서 표시 이름 등록 확인.
 2. 구현: 시설 운영자 권한(facility_operators 서버 검사) → 슬롯 등록·공개.
 3. 미정 정책: 표시 이름의 방향 제어·영폭 문자 허용 여부.
+
+## 2026-10-11 — _workspace 저장소 포함
+
+- 사용자 요청: _workspace 도 새 머신으로 넘어가게 .gitignore 갱신.
+- .gitignore 에서 `_workspace/`, `_workspace_*/` 제외 규칙을 지웠다. 위 섹션의 "_workspace 는 넘어가지 않는다" 기록은 이 변경으로 더 이상 맞지 않는다.
+- booking-orchestrator 스킬과 docs/handoff.md 2-1절의 _workspace 설명을 맞게 고쳤다.
+- _workspace 산출물(01 계획 ~ 05 QA 보고, freeze_build.sha)은 비밀값 패턴 검색 결과 해당 없음.

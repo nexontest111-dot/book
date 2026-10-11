@@ -65,7 +65,7 @@ description: "플레이약속 예약 서비스 기능 개발 팀(db-architect, a
 3. 커밋·푸시·배포·SQL 실행은 사용자가 요청할 때만 한다. 커밋 메시지는 기존 관례(`feat:`, `fix:`, `docs:`, `chore:` + 영어 요약)를 따른다.
 
 ## 데이터 전달
-- 파일: `_workspace/{단계번호}_{에이전트}_{산출물}.md` (`_workspace/`는 `.gitignore`에 포함)
+- 파일: `_workspace/{단계번호}_{에이전트}_{산출물}.md` (`_workspace/`는 저장소에 커밋되어 다른 머신으로 넘어간다. 비밀값을 쓰지 않는다)
 - 메시지: 경로 알림과 결함 전달만 SendMessage로. 큰 내용은 파일로.
 - 최종 산출물: 저장소의 `migrations/`, `server/`, `prototype/`, `docs/`.
 

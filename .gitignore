@@ -10,5 +10,3 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
-_workspace/
-_workspace_*/

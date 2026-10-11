@@ -58,7 +58,7 @@ Claude Code로 이어서 작업하면 저장소의 하네스가 자동으로 적
 - CLAUDE.md: 예약 서비스 기능 구현·수정·검증 요청 시 booking-orchestrator 스킬을 쓰도록 지시.
 - .claude/agents/: db-architect, api-developer, frontend-developer, qa-inspector, doc-keeper.
 - .claude/skills/: booking-orchestrator(조율), booking-domain-rules(승인·미정 정책, 불변식), supabase-migration, worker-api, frontend-integration, qa-boundary-check(정적 검사 scripts/static-check.mjs), worklog-recording.
-- 작업 중간 산출물은 _workspace/ 에 쓰며 .gitignore로 제외된다. 다른 머신에는 넘어가지 않으므로 완료된 작업의 근거는 docs/worklog.md와 기능별 docs 문서에 남긴다.
+- 작업 중간 산출물은 _workspace/ 에 쓰며 2026-10-11부터 저장소에 커밋되어 다른 머신으로 넘어간다(계획·스키마 노트·API 계약·화면 노트·QA 보고·동결 해시). 비밀값은 쓰지 않는다. 확정된 근거는 계속 docs/worklog.md와 기능별 docs 문서에 남긴다.
 - 정적 검사: node .claude/skills/qa-boundary-check/scripts/static-check.mjs .
 - 새 머신에서 시작 예: claude 실행 후 "워크로그 확인하고 작업할 내용 파악해줘 (하네스로)".
 - Claude Code 로그인, 플러그인, 개인 메모리(~/.claude)는 머신별이며 저장소에 포함되지 않는다.
